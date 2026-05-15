@@ -96,7 +96,7 @@ with st.sidebar:
     st.caption("🚀 COMING SOON: KI-Prognose für Ankunftszeit.")
     c1, c2 = st.columns(2)
     # Nutze text_input statt Slider für den "Disabled"-Look ohne Fehler
-    c1.text_input("Stunde", value=datetime.now().hour+ dt.timedelta(hours=2), disabled=True)
+    c1.text_input("Stunde", value=datetime.now().hour, disabled=True)
     c2.text_input("Minute", value="00", disabled=True)
     uhr = datetime.now().hour 
     
