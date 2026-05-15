@@ -125,7 +125,8 @@ with st.sidebar:
 if start_node == end_node:
     st.warning("⚠️ Start und Ziel sind identisch.")
 else:
-    now = datetime.now()
+    import datetime as dt
+    now = dt.datetime.now() + dt.timedelta(hours=2)
     st.markdown(f'<p class="digital-clock">{now.strftime("%H:%M:%S")}</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="live-label">LIVE-ANALYSE STAND: {now.strftime("%d.%m.%Y")}</p>', unsafe_allow_html=True)
 
