@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 import datetime as dt # Für präzise Zeitberechnungen importiert
 
 # --- 1. SETUP & STYLE ---
-st.set_page_config(page_title="Terrafiq. Finde günstigsten Weg!", layout="wide")
+st.set_page_config(page_title="Terrafiq | Real-Time TCO Optimization", layout="wide")
 
 # Custom CSS für "Control Center" Look & Zentrierung
 st.markdown("""
