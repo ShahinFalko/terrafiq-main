@@ -169,12 +169,18 @@ else:
                 clean_route = best['route'].replace("(", "").replace(")", "")
                 
                 # LOGIK FÜR KURZ-BADGE (A8-B10/B27)
-                short_badge = "A8 Korridor" 
-                if "ESS_L" in str(best.get('pure_path', '')):
-                    short_badge = "A8 ➔ B10"
-                elif "STR_K" in str(best.get('pure_path', '')):
-                    short_badge = "A8 ➔ B27"
-                elif "HOLZ_K" in str(best.get('pure_path', '')):
+                # --- NEU: Dynamische Erkennung der Fahrtrichtung (Hin- oder Rückrichtung) ---
+                short_badge = "A8 Korridor"
+                path_str = str(best.get('pure_path', ''))
+                
+                # Prüfen, ob "M_WEST" am Anfang oder am Ende der Route steht, um die Richtung zu kennen
+                is_from_munich = path_str.find("M_WEST") < path_str.find("KOR_W") if ("M_WEST" in path_str and "KOR_W" in path_str) else True
+                
+                if "ESS_L" in path_str:
+                    short_badge = "A8 ➔ B10" if is_from_munich else "B10 ➔ A8"
+                elif "STR_K" in path_str:
+                    short_badge = "A8 ➔ B27" if is_from_munich else "B27 ➔ A8"
+                elif "HOLZ_K" in path_str:
                     short_badge = "A8 Süd"
                 
                 # Anzeige Box inklusive Kurz-Badge
