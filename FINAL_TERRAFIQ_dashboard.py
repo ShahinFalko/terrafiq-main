@@ -170,28 +170,28 @@ else:
                 
                 # LOGIK FÜR KURZ-BADGE (A8-B10/B27)
                # --- NEU: Vollautomatische, netzwerkweite Autobahn-Erkennung ---
+               # --- NEU: Präzise, richtungsunabhängige Autobahn-Kette ---
                 path_str = str(best.get('pure_path', ''))
                 used_highways = []
 
-                # 1. Autobahn-Segmente im Pfad scannen
+                # 1. Segmente exakt nach durchfahrenen Regionen scannen
                 if "HOLZ_K" in path_str:
                     used_highways.append("A8 Süd")
                 
-                # Kern-Korridor prüfen
-                if "M_WEST" in path_str and ("ULM_E" in path_str or "AUG_O" in path_str):
-                    if "A8 Süd" not in used_highways:  # Verhindert doppelte A8-Nennung
-                        used_highways.append("A8")
-                elif "LDS_L" in path_str:
+                # Wenn die Route über Augsburg/Jettingen läuft, war sie auf der Haupt-A8
+                if "AUG_O" in path_str or "JET_S" in path_str:
+                    used_highways.append("A8")
+                
+                if "LDS_L" in path_str:
                     used_highways.append("A96")
 
-                # Zentral-Verteiler prüfen
-                if "MEM_M" in path_str and "ULM_E" in path_str:
+                if "MEM_M" in path_str and "ULM_E" in path_str and "HDH_M" not in path_str:
                     used_highways.append("A7")
                 
-                # Nord- und Ost-Strecken prüfen
+                # Wenn Heidenheim oder Aalen durchfahren werden, ist es die Nord-A7
                 if "HDH_M" in path_str or "AAL_W" in path_str:
-                    if "A7" not in used_highways:
-                        used_highways.append("A7")
+                    used_highways.append("A7")
+                    
                 if "WAI_B" in path_str:
                     used_highways.append("B29")
 
@@ -203,10 +203,15 @@ else:
                 elif "STR_K" in path_str:
                     used_highways.append("➔ B27" if is_from_east else "B27 ➔")
 
-                # 2. Badge-Text elegant zusammenbauen
-                if used_highways:
-                    # Bereinigung der Pfeile, falls sie am Anfang oder Ende einer Kette stehen
-                    badge_text = " | ".join(used_highways)
+                # 2. Duplikate verhindern, aber Reihenfolge beibehalten
+                clean_highways = []
+                for h in used_highways:
+                    if h not in clean_highways:
+                        clean_highways.append(h)
+
+                # 3. Text elegant zusammenbauen
+                if clean_highways:
+                    badge_text = " | ".join(clean_highways)
                     badge_text = badge_text.replace("| ➔", "➔").replace("➔ |", "➔")
                     short_badge = badge_text
                 else:
