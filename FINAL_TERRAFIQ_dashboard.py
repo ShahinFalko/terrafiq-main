@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 from datetime import datetime
 
 # --- 1. SETUP & STYLE ---
-st.set_page_config(page_title="Terrafiq Matrix Control v2.9.9", layout="wide")
+st.set_page_config(page_title="Terrafiq Matrix Control v2.9.10", layout="wide")
 
 # Custom CSS für "Control Center" Look & Zentrierung
 st.markdown("""
@@ -25,6 +25,17 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 25px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .badge-route {
+        background-color: #ff4500;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 5px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 22px;
+        margin-left: 15px;
+        display: inline-block;
+        box-shadow: 0 0 8px #ff4500;
     }
     .digital-clock {
         font-family: 'Orbitron', sans-serif;
@@ -59,9 +70,10 @@ st.markdown("""
 
 API_URL = "https://1vlp62sdx7.execute-api.eu-central-1.amazonaws.com/calculate"
 
+# --- ZU FRAGE 2: REIHENFOLGE GEÄNDERT (Holzkirchen vor München West) ---
 NODES = {
-    'M_WEST': {'lat': 48.17, 'lon': 11.40, 'name': 'München West'},
     'HOLZ_K': {'lat': 47.88, 'lon': 11.70, 'name': 'Holzkirchen'},
+    'M_WEST': {'lat': 48.17, 'lon': 11.40, 'name': 'München West'},
     'AUG_O':  {'lat': 48.40, 'lon': 10.93, 'name': 'Augsburg Ost'},
     'LDS_L':  {'lat': 48.04, 'lon': 10.87, 'name': 'Landsberg a.L.'},
     'JET_S':  {'lat': 48.41, 'lon': 10.43, 'name': 'Jettingen-S.'},
@@ -78,24 +90,28 @@ NODES = {
 
 name_to_id = {node_data['name']: node_id for node_id, node_data in NODES.items()}
 
+# --- ZU FRAGE 2: KORREKTE DEFAULT-INDIZES FÜR DIE NEUE REIHENFOLGE ---
+list_of_names = list(name_to_id.keys())
+default_start_index = list_of_names.index('München West')      # Findet dynamisch "München West"
+default_end_index = list_of_names.index('Kornwestheim')        # Findet dynamisch "Kornwestheim"
+
 # --- 2. SIDEBAR ---
 with st.sidebar:
-    st.title("🏛️ TERRAFIQ v2.9.9")
+    st.title("🏛️ TERRAFIQ v2.9.10")
     st.info("Echtzeit-Matrix: Topographie & Autobahn-Mapping aktiv.")
     
-    start_name = st.selectbox("Startpunkt", list(name_to_id.keys()), index=0)
+    start_name = st.selectbox("Startpunkt (München/Umland)", list_of_names, index=default_start_index)
     start_node = name_to_id[start_name]
     
-    end_name = st.selectbox("Zielpunkt", list(name_to_id.keys()), index=13)
+    end_name = st.selectbox("Zielpunkt (Stuttgart/Korridor)", list_of_names, index=default_end_index)
     end_node = name_to_id[end_name]
     
     st.markdown("---")
     
-    # --- ZEITPLANUNG (PREDICTIVE MODE - COMING SOON) ---
+    # --- ZEITPLANUNG (PREDICTIVE MODE) ---
     st.subheader("⏰ Zeitplanung (Predictive)")
     st.caption("🚀 COMING SOON: KI-Prognose für Ankunftszeit.")
     c1, c2 = st.columns(2)
-    # Nutze text_input statt Slider für den "Disabled"-Look ohne Fehler
     c1.text_input("Stunde", value=datetime.now().hour, disabled=True)
     c2.text_input("Minute", value="00", disabled=True)
     uhr = datetime.now().hour 
@@ -108,7 +124,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption("Datenquelle: TomTom Live Traffic, OpenWeather, Tankerkönig")
 
-    # --- DEIN PORTFOLIO-BRANDING ---
+    # --- PORTFOLIO-BRANDING ---
     st.markdown("---")
     st.markdown(
         f"""
@@ -125,8 +141,7 @@ with st.sidebar:
 if start_node == end_node:
     st.warning("⚠️ Start und Ziel sind identisch.")
 else:
-    import datetime as dt
-    now = dt.datetime.now() + dt.timedelta(hours=2)
+    now = datetime.now()
     st.markdown(f'<p class="digital-clock">{now.strftime("%H:%M:%S")}</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="live-label">LIVE-ANALYSE STAND: {now.strftime("%d.%m.%Y")}</p>', unsafe_allow_html=True)
 
@@ -147,7 +162,22 @@ else:
                 delay = best.get('traffic_delay_min', 0)
                 clean_route = best['route'].replace("(", "").replace(")", "")
                 
-                st.markdown(f'<div class="result-box">🏆 BESTE ROUTE: {clean_route}</div>', unsafe_allow_html=True)
+                # --- ZU FRAGE 1: LOGIK FÜR KURZ-BADGE (A8-B10/B27) ---
+                short_badge = "A8 Korridor" # Fallback
+                if "ESS_L" in str(best.get('pure_path', '')):
+                    short_badge = "A8 ➔ B10"
+                elif "STR_K" in str(best.get('pure_path', '')):
+                    short_badge = "A8 ➔ B27"
+                elif "HOLZ_K" in str(best.get('pure_path', '')):
+                    short_badge = "A8 Süd"
+                
+                # Anzeige Box inklusive dem neuen Kurz-Badge
+                st.markdown(f"""
+                    <div class="result-box">
+                        🏆 BESTE ROUTE: {clean_route} 
+                        <span class="badge-route">{short_badge}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
 
                 if delay > 10:
                     st.error(f"⚠️ KRITISCHER STAU: +{delay} Min Verzögerung auf der Optimal-Route!")
