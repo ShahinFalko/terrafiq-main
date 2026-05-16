@@ -97,7 +97,7 @@ default_end_index = list_of_names.index('Kornwestheim')
 
 # --- 2. SIDEBAR ---
 with st.sidebar:
-    st.title("TERRAFIQ   v1.0.0")
+    st.title("🏛️ TERRAFIQ  v1.0.0")
     st.info("Echtzeit-Matrix: Topographie & Autobahn-Mapping aktiv.")
     
     start_name = st.selectbox("Startpunkt", list_of_names, index=default_start_index)
