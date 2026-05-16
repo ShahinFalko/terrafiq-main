@@ -83,10 +83,10 @@ with st.sidebar:
     st.title("🏛️ TERRAFIQ v2.9.9")
     st.info("Echtzeit-Matrix: Topographie & Autobahn-Mapping aktiv.")
     
-    start_name = st.selectbox("Startpunkt (München/Umland)", list(name_to_id.keys()), index=0)
+    start_name = st.selectbox("Startpunkt", list(name_to_id.keys()), index=0)
     start_node = name_to_id[start_name]
     
-    end_name = st.selectbox("Zielpunkt (Stuttgart/Korridor)", list(name_to_id.keys()), index=13)
+    end_name = st.selectbox("Zielpunkt", list(name_to_id.keys()), index=13)
     end_node = name_to_id[end_name]
     
     st.markdown("---")
