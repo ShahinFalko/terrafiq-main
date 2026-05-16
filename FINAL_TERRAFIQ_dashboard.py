@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 import datetime as dt # Für präzise Zeitberechnungen importiert
 
 # --- 1. SETUP & STYLE ---
-st.set_page_config(page_title="Terrafiq Matrix Control v2.9.11", layout="wide")
+st.set_page_config(page_title="Terrafiq Matrix Control v2.9.12", layout="wide")
 
 # Custom CSS für "Control Center" Look & Zentrierung
 st.markdown("""
@@ -97,7 +97,7 @@ default_end_index = list_of_names.index('Kornwestheim')
 
 # --- 2. SIDEBAR ---
 with st.sidebar:
-    st.title("🏛️ TERRAFIQ v2.9.11")
+    st.title("🏛️ TERRAFIQ v2.9.12")
     st.info("Echtzeit-Matrix: Topographie & Autobahn-Mapping aktiv.")
     
     start_name = st.selectbox("Startpunkt (München/Umland)", list_of_names, index=default_start_index)
@@ -188,9 +188,19 @@ else:
                 if delay > 10:
                     st.error(f"⚠️ KRITISCHER STAU: +{delay} Min Verzögerung auf der Optimal-Route!")
                 
+                # --- FORMATIERUNG DER STUNDEN-METRIC (Schönheits-Korrektur) ---
+                raw_hours = float(best['zeit_h'])
+                hours = int(raw_hours)
+                minutes = int(round((raw_hours - hours) * 60))
+                
+                if minutes == 60:
+                    hours += 1
+                    minutes = 0
+                # -------------------------------------------------------------
+
                 m1, m2, m3, m4 = st.columns(4)
                 m1.metric("Gesamtkosten (TCO)", f"{best['gesamt_kosten_euro']} €")
-                m2.metric("Echtzeit-Dauer", f"{best['zeit_h']} h", delta=f"{delay} min Stau", delta_color="inverse")
+                m2.metric("Echtzeit-Dauer", f"{hours}h {minutes}min", delta=f"{delay} min Stau", delta_color="inverse")
                 m3.metric("CO2 Footprint", f"{best.get('co2_kg', 0)} kg")
                 m4.metric("Distanz", f"{best['distanz_km']} km")
 
@@ -216,9 +226,11 @@ else:
                 st.subheader("📋 Analyse-Matrix")
                 df_display = pd.DataFrame(data)[['rank', 'route', 'gesamt_kosten_euro', 'distanz_km', 'zeit_h']]
                 
+                # --- FORMATIERUNG DER TABELLE (Kürzung auf 2 Nachkommastellen) ---
                 st.dataframe(df_display.style.format({
                         'gesamt_kosten_euro': '{:.2f} €',
-                        'distanz_km': '{:.1f} km'
+                        'distanz_km': '{:.1f} km',
+                        'zeit_h': '{:.2f} h'
                     }).set_properties(**{'text-align': 'center'}), 
                     hide_index=True, use_container_width=True)
             else:
