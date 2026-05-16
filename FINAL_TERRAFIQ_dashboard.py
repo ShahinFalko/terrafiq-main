@@ -169,19 +169,48 @@ else:
                 clean_route = best['route'].replace("(", "").replace(")", "")
                 
                 # LOGIK FÜR KURZ-BADGE (A8-B10/B27)
-                # --- NEU: Dynamische Erkennung der Fahrtrichtung (Hin- oder Rückrichtung) ---
-                short_badge = "A8 Korridor"
+               # --- NEU: Vollautomatische, netzwerkweite Autobahn-Erkennung ---
                 path_str = str(best.get('pure_path', ''))
+                used_highways = []
+
+                # 1. Autobahn-Segmente im Pfad scannen
+                if "HOLZ_K" in path_str:
+                    used_highways.append("A8 Süd")
                 
-                # Prüfen, ob "M_WEST" am Anfang oder am Ende der Route steht, um die Richtung zu kennen
-                is_from_munich = path_str.find("M_WEST") < path_str.find("KOR_W") if ("M_WEST" in path_str and "KOR_W" in path_str) else True
+                # Kern-Korridor prüfen
+                if "M_WEST" in path_str and ("ULM_E" in path_str or "AUG_O" in path_str):
+                    if "A8 Süd" not in used_highways:  # Verhindert doppelte A8-Nennung
+                        used_highways.append("A8")
+                elif "LDS_L" in path_str:
+                    used_highways.append("A96")
+
+                # Zentral-Verteiler prüfen
+                if "MEM_M" in path_str and "ULM_E" in path_str:
+                    used_highways.append("A7")
                 
+                # Nord- und Ost-Strecken prüfen
+                if "HDH_M" in path_str or "AAL_W" in path_str:
+                    if "A7" not in used_highways:
+                        used_highways.append("A7")
+                if "WAI_B" in path_str:
+                    used_highways.append("B29")
+
+                # Stuttgarter End-Korridore (mit Fahrtrichtungs-Logik)
+                is_from_east = path_str.find("KIR_T") < path_str.find("KOR_W") if ("KIR_T" in path_str and "KOR_W" in path_str) else True
+
                 if "ESS_L" in path_str:
-                    short_badge = "A8 ➔ B10" if is_from_munich else "B10 ➔ A8"
+                    used_highways.append("➔ B10" if is_from_east else "B10 ➔")
                 elif "STR_K" in path_str:
-                    short_badge = "A8 ➔ B27" if is_from_munich else "B27 ➔ A8"
-                elif "HOLZ_K" in path_str:
-                    short_badge = "A8 Süd"
+                    used_highways.append("➔ B27" if is_from_east else "B27 ➔")
+
+                # 2. Badge-Text elegant zusammenbauen
+                if used_highways:
+                    # Bereinigung der Pfeile, falls sie am Anfang oder Ende einer Kette stehen
+                    badge_text = " | ".join(used_highways)
+                    badge_text = badge_text.replace("| ➔", "➔").replace("➔ |", "➔")
+                    short_badge = badge_text
+                else:
+                    short_badge = "Route Aktiv"
                 
                 # Anzeige Box inklusive Kurz-Badge
                 st.markdown(f"""
