@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 import datetime as dt # Für präzise Zeitberechnungen importiert
 
 # --- 1. SETUP & STYLE ---
-st.set_page_config(page_title="Terrafiq Matrix Control v2.9.12", layout="wide")
+st.set_page_config(page_title="Terrafiq. Finde günstigsten Weg!", layout="wide")
 
 # Custom CSS für "Control Center" Look & Zentrierung
 st.markdown("""
@@ -97,13 +97,13 @@ default_end_index = list_of_names.index('Kornwestheim')
 
 # --- 2. SIDEBAR ---
 with st.sidebar:
-    st.title("🏛️ TERRAFIQ Version 1.0")
+    st.title("TERRAFIQ   v1.0.0")
     st.info("Echtzeit-Matrix: Topographie & Autobahn-Mapping aktiv.")
     
-    start_name = st.selectbox("Startpunkt (München/Umland)", list_of_names, index=default_start_index)
+    start_name = st.selectbox("Startpunkt", list_of_names, index=default_start_index)
     start_node = name_to_id[start_name]
     
-    end_name = st.selectbox("Zielpunkt (Stuttgart/Korridor)", list_of_names, index=default_end_index)
+    end_name = st.selectbox("Zielpunkt", list_of_names, index=default_end_index)
     end_node = name_to_id[end_name]
     
     st.markdown("---")
