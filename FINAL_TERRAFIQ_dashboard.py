@@ -4,10 +4,10 @@ import requests
 import folium
 import plotly.express as px
 from streamlit_folium import st_folium
-from datetime import datetime
+import datetime as dt # Für präzise Zeitberechnungen importiert
 
 # --- 1. SETUP & STYLE ---
-st.set_page_config(page_title="Terrafiq Matrix Control v2.9.10", layout="wide")
+st.set_page_config(page_title="Terrafiq Matrix Control v2.9.11", layout="wide")
 
 # Custom CSS für "Control Center" Look & Zentrierung
 st.markdown("""
@@ -70,7 +70,7 @@ st.markdown("""
 
 API_URL = "https://1vlp62sdx7.execute-api.eu-central-1.amazonaws.com/calculate"
 
-# --- ZU FRAGE 2: REIHENFOLGE GEÄNDERT (Holzkirchen vor München West) ---
+# REIHENFOLGE GEÄNDERT (Holzkirchen vor München West)
 NODES = {
     'HOLZ_K': {'lat': 47.88, 'lon': 11.70, 'name': 'Holzkirchen'},
     'M_WEST': {'lat': 48.17, 'lon': 11.40, 'name': 'München West'},
@@ -90,14 +90,14 @@ NODES = {
 
 name_to_id = {node_data['name']: node_id for node_id, node_data in NODES.items()}
 
-# --- ZU FRAGE 2: KORREKTE DEFAULT-INDIZES FÜR DIE NEUE REIHENFOLGE ---
+# KORREKTE DEFAULT-INDIZES FÜR DIE REIHENFOLGE
 list_of_names = list(name_to_id.keys())
-default_start_index = list_of_names.index('München West')      # Findet dynamisch "München West"
-default_end_index = list_of_names.index('Kornwestheim')        # Findet dynamisch "Kornwestheim"
+default_start_index = list_of_names.index('München West')
+default_end_index = list_of_names.index('Kornwestheim')
 
 # --- 2. SIDEBAR ---
 with st.sidebar:
-    st.title("🏛️ TERRAFIQ v2.9.10")
+    st.title("🏛️ TERRAFIQ v2.9.11")
     st.info("Echtzeit-Matrix: Topographie & Autobahn-Mapping aktiv.")
     
     start_name = st.selectbox("Startpunkt (München/Umland)", list_of_names, index=default_start_index)
@@ -112,9 +112,14 @@ with st.sidebar:
     st.subheader("⏰ Zeitplanung (Predictive)")
     st.caption("🚀 COMING SOON: KI-Prognose für Ankunftszeit.")
     c1, c2 = st.columns(2)
-    c1.text_input("Stunde", value=datetime.now().hour, disabled=True)
+    
+    # Korrigierte Stundenberechnung für das Anzeige-Feld (+2 Stunden)
+    local_hour = (dt.datetime.now().hour + 2) % 24
+    c1.text_input("Stunde", value=local_hour, disabled=True)
     c2.text_input("Minute", value="00", disabled=True)
-    uhr = datetime.now().hour 
+    
+    # Übergabe der korrekten deutschen Echtzeit-Stunde an das AWS-Backend
+    uhr = local_hour 
     
     st.markdown("---")
     st.subheader("🔧 TCO Faktoren")
@@ -141,7 +146,8 @@ with st.sidebar:
 if start_node == end_node:
     st.warning("⚠️ Start und Ziel sind identisch.")
 else:
-    now = datetime.now()
+    # Server-Zeit auf deutsche Echtzeit zwingen (+2 Stunden)
+    now = dt.datetime.now() + dt.timedelta(hours=2)
     st.markdown(f'<p class="digital-clock">{now.strftime("%H:%M:%S")}</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="live-label">LIVE-ANALYSE STAND: {now.strftime("%d.%m.%Y")}</p>', unsafe_allow_html=True)
 
@@ -162,8 +168,8 @@ else:
                 delay = best.get('traffic_delay_min', 0)
                 clean_route = best['route'].replace("(", "").replace(")", "")
                 
-                # --- ZU FRAGE 1: LOGIK FÜR KURZ-BADGE (A8-B10/B27) ---
-                short_badge = "A8 Korridor" # Fallback
+                # LOGIK FÜR KURZ-BADGE (A8-B10/B27)
+                short_badge = "A8 Korridor" 
                 if "ESS_L" in str(best.get('pure_path', '')):
                     short_badge = "A8 ➔ B10"
                 elif "STR_K" in str(best.get('pure_path', '')):
@@ -171,7 +177,7 @@ else:
                 elif "HOLZ_K" in str(best.get('pure_path', '')):
                     short_badge = "A8 Süd"
                 
-                # Anzeige Box inklusive dem neuen Kurz-Badge
+                # Anzeige Box inklusive Kurz-Badge
                 st.markdown(f"""
                     <div class="result-box">
                         🏆 BESTE ROUTE: {clean_route} 
