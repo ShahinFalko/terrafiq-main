@@ -168,52 +168,38 @@ else:
                 delay = best.get('traffic_delay_min', 0)
                 clean_route = best['route'].replace("(", "").replace(")", "")
                 
-                # LOGIK FÜR KURZ-BADGE (A8-B10/B27)
-               # --- NEU: Vollautomatische, netzwerkweite Autobahn-Erkennung ---
-               # --- NEU: Präzise, richtungsunabhängige Autobahn-Kette ---
-                path_str = str(best.get('pure_path', ''))
+                # --- KORREKTUR: Chronologische & Fahrtrichtungs-konforme Kette ---
+                route_str = best['route']
                 used_highways = []
 
-                # 1. Segmente exakt nach durchfahrenen Regionen scannen
-                if "HOLZ_K" in path_str:
-                    used_highways.append("A8 Süd")
+                # Wir spalten den Routen-String aus dem Backend chronologisch auf
+                raw_segments = route_str.split(" -> ")
                 
-                # Wenn die Route über Augsburg/Jettingen läuft, war sie auf der Haupt-A8
-                if "AUG_O" in path_str or "JET_S" in path_str:
-                    used_highways.append("A8")
-                
-                if "LDS_L" in path_str:
-                    used_highways.append("A96")
+                for segment in raw_segments:
+                    if "A8 (Süd)" in segment:
+                        used_highways.append("A8 Süd")
+                    elif "A8" in segment:
+                        used_highways.append("A8")
+                    elif "A96" in segment:
+                        used_highways.append("A96")
+                    elif "A7" in segment:
+                        used_highways.append("A7")
+                    elif "B29" in segment:
+                        used_highways.append("B29")
+                    elif "B10" in segment:
+                        used_highways.append("B10")
+                    elif "B27" in segment:
+                        used_highways.append("B27")
 
-                if "MEM_M" in path_str and "ULM_E" in path_str and "HDH_M" not in path_str:
-                    used_highways.append("A7")
-                
-                # Wenn Heidenheim oder Aalen durchfahren werden, ist es die Nord-A7
-                if "HDH_M" in path_str or "AAL_W" in path_str:
-                    used_highways.append("A7")
-                    
-                if "WAI_B" in path_str:
-                    used_highways.append("B29")
-
-                # Stuttgarter End-Korridore (mit Fahrtrichtungs-Logik)
-                is_from_east = path_str.find("KIR_T") < path_str.find("KOR_W") if ("KIR_T" in path_str and "KOR_W" in path_str) else True
-
-                if "ESS_L" in path_str:
-                    used_highways.append("➔ B10" if is_from_east else "B10 ➔")
-                elif "STR_K" in path_str:
-                    used_highways.append("➔ B27" if is_from_east else "B27 ➔")
-
-                # 2. Duplikate verhindern, aber Reihenfolge beibehalten
+                # Fehler-Duplikate direkt in Fahrtrichtung filtern
                 clean_highways = []
                 for h in used_highways:
-                    if h not in clean_highways:
+                    if not clean_highways or clean_highways[-1] != h:
                         clean_highways.append(h)
 
-                # 3. Text elegant zusammenbauen
+                # Zusammenbau mit dem Richtungs-Pfeil
                 if clean_highways:
-                    badge_text = " | ".join(clean_highways)
-                    badge_text = badge_text.replace("| ➔", "➔").replace("➔ |", "➔")
-                    short_badge = badge_text
+                    short_badge = " ➔ ".join(clean_highways)
                 else:
                     short_badge = "Route Aktiv"
                 
