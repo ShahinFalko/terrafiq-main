@@ -26,6 +26,11 @@ st.markdown("""
         margin-bottom: 25px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
+    .highlight-title {
+        color: #2ecc71;
+        text-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+        font-weight: bold;
+    }
     .badge-route {
         background-color: #ff4500;
         color: white;
@@ -206,7 +211,7 @@ else:
                 # Anzeige Box inklusive Kurz-Badge
                 st.markdown(f"""
                     <div class="result-box">
-                        🏆 BESTE ROUTE: {clean_route} 
+                        🏆 <span class="highlight-title">BESTE ROUTE:</span> {clean_route} 
                         <span class="badge-route">{short_badge}</span>
                     </div>
                     """, unsafe_allow_html=True)
