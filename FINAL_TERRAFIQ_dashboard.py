@@ -21,26 +21,39 @@ st.markdown("""
         border-radius: 10px;
         border-left: 8px solid #2ecc71;
         font-family: 'Helvetica Neue', sans-serif;
-        font-size: 26px;
-        font-weight: bold;
+        font-size: 24px;
         margin-bottom: 25px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        line-height: 1.6;
+    }
+    .title-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
     }
     .highlight-title {
         color: #2ecc71;
         text-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
         font-weight: bold;
+        font-size: 26px;
     }
     .badge-route {
         background-color: #ff4500;
         color: white;
-        padding: 4px 12px;
+        padding: 4px 14px;
         border-radius: 5px;
         font-family: 'Orbitron', sans-serif;
+        font-size: 20px;
+        margin-left: 18px;
+        font-weight: bold;
+        box-shadow: 0 0 10px #ff4500;
+        letter-spacing: 1px;
+    }
+    .route-chain {
         font-size: 22px;
-        margin-left: 15px;
-        display: inline-block;
-        box-shadow: 0 0 8px #ff4500;
+        font-weight: bold;
+        color: #ecf0f1;
+        padding-left: 35px;
     }
     .digital-clock {
         font-family: 'Orbitron', sans-serif;
@@ -208,11 +221,16 @@ else:
                 else:
                     short_badge = "Route Aktiv"
                 
-                # Anzeige Box inklusive Kurz-Badge
+                # Anzeige Box inklusive integriertem Badge und klarer Strukturierung
                 st.markdown(f"""
                     <div class="result-box">
-                        🏆 <span class="highlight-title">BESTE ROUTE:</span> {clean_route} 
-                        <span class="badge-route">{short_badge}</span>
+                        <div class="title-container">
+                            🏆 <span class="highlight-title">BESTE OPTIMAL-ROUTE:</span>
+                            <span class="badge-route">{short_badge}</span>
+                        </div>
+                        <div class="route-chain">
+                            {clean_route}
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
 
