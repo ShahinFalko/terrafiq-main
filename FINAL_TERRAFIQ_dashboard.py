@@ -6,6 +6,17 @@ import plotly.express as px
 from streamlit_folium import st_folium
 import datetime as dt # Für präzise Zeitberechnungen importiert
 
+# CSS erzwingt den Dark-Mode
+st.markdown("""
+    <style>
+    :root {
+        color-scheme: dark;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# HIER DARUNTER STEHT DEIN RESTLICHER CODE (DEINE APP)
+
 # --- 1. SETUP & STYLE ---
 st.set_page_config(page_title="TERRAFIQ | Real-Time TCO Optimization", layout="wide")
 
