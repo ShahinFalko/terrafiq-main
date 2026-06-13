@@ -9,9 +9,9 @@ df = pd.read_csv('telemetry_matrix_with_topography.csv')
 
 # Feature Engineering: Wir berechnen den tatsächlichen Verbrauch in diesem Abschnitt
 # (Vorheriger Tankstand - aktueller Tankstand)
-df['fuel_consumed'] = df['fuel_level_liters'].shift(0) - df['fuel_level_liters']
+df['fuel_consumed'] = df['fuel_level_liters'].shift(1) - df['fuel_level_liters']
 # Für das Minimal-Beispiel füllen wir den ersten Wert sauber auf
-df['fuel_consumed'] = df['fuel_consumed'].shift(-1).fillna(4.5) 
+df['fuel_consumed'] = df['fuel_consumed'].fillna(0.0) 
 
 # Features (X) und Target (y) definieren
 # Wir wollen den Verbrauch vorhersagen anhand von Distanz und Steigungsprofil
