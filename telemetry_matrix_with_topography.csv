@@ -1,0 +1,4 @@
+vehicle_id,latitude,longitude,fuel_level_liters,distance_chunk_km,elevation_meters,slope_percentage
+M-TX-4920,48.18,11.45,380.0,0.0,487.11,0.0
+M-TX-4920,48.195,11.43,375.2,2.1,512.97,1.2314
+M-TX-4920,48.22,11.4,368.5,3.5,495.85,-0.4891

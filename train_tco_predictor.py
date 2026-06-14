@@ -1,41 +1,55 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 
-# 1. Datenmatrix laden
-df = pd.read_csv('telemetry_matrix_with_topography.csv')
+print("⏳ Lade die skalierte Datenmatrix (10.000 Fahrten)...")
+# Wir laden die große Datei, die wir vorhin physisch auf der Festplatte gesichert haben!
+df = pd.read_csv('muenchen_test_10000.csv')
 
-# Feature Engineering: Wir berechnen den tatsächlichen Verbrauch in diesem Abschnitt
-# (Vorheriger Tankstand - aktueller Tankstand)
-df['fuel_consumed'] = df['fuel_level_liters'].shift(1) - df['fuel_level_liters']
-# Für das Minimal-Beispiel füllen wir den ersten Wert sauber auf
-df['fuel_consumed'] = df['fuel_consumed'].fillna(0.0) 
+# ==============================================================================
+# 1. Features (X) und Target (y) definieren
+# ==============================================================================
+# Wir schmeißen das Target aus den Features und nutzen alle restlichen Spalten zur Vorhersage
+X = df.drop(columns=['CO2_Ausstoss_Ist'])
+y = df['CO2_Ausstoss_Ist']
 
-# Features (X) und Target (y) definieren
-# Wir wollen den Verbrauch vorhersagen anhand von Distanz und Steigungsprofil
-X = df[['distance_chunk_km', 'slope_percentage']]
-y = df['fuel_consumed']
+# ==============================================================================
+# 2. Train-Test-Split (Strikte Trennung für die Validierung)
+# ==============================================================================
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-print("🤖 Initialisiere Scikit-Learn Linear Regression Modell...")
+print(f"-> Trainings-Datensätze: {X_train.shape[0]}")
+print(f"-> Test-Datensätze (für die Validierung): {X_test.shape[0]}")
+
+# ==============================================================================
+# 3. Modell-Training
+# ==============================================================================
+print("\n🤖 Initialisiere Scikit-Learn Linear Regression Modell...")
 model = LinearRegression()
 
-# Modell trainieren
-model.fit(X, y)
+# Das Modell lernt NUR aus den 8.000 Trainingsdaten
+model.fit(X_train, y_train)
+print("✅ Modell erfolgreich auf Trainingsdaten trainiert!")
 
-# Vorhersage generieren zur Validierung
-y_pred = model.predict(X)
+# ==============================================================================
+# 4. Validierung auf den ungesehenen 2.000 Testdaten
+# ==============================================================================
+y_pred = model.predict(X_test)
 
 # Kennzahlen berechnen
-r2 = r2_score(y, y_pred)
-mse = mean_squared_error(y, y_pred)
+r2 = r2_score(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
-print(f"\n📈 Modell-Koeffizienten (TCO-Treiber):")
-print(f"-> Einfluss Distanz (pro km): {model.coef_[0]:.3f} Liter")
-print(f"-> Einfluss Steigung (pro %): {model.coef_[1]:.3f} Liter")
-print(f"-> Bestimmtheitsmaß R²: {r2:.4f} (Perfekt für lokales Grund-Setup)")
+print(f"\n📊 --- VALIDIERUNGS-KENNZAHLEN ---")
+print(f"-> Bestimmtheitsmass R² (auf Testdaten): {r2:.4f}")
+print(f"-> Mittlerer Fehler (RMSE): {rmse:.4f} kg CO2")
 
-# Modell exportieren für Sonntag
-joblib.dump(model, 'tco_regressor_v1.pkl')
-print("\n💾 Modell erfolgreich als 'tco_regressor_v1.pkl' exportiert.")
+# ==============================================================================
+# 5. Modell-Export für die Cloud-Infrastruktur
+# ==============================================================================
+model_filename = 'tco_co2_predictor.joblib'
+joblib.dump(model, model_filename)
+print(f"\n💾 KI-Modell erfolgreich als '{model_filename}' exportiert.")
