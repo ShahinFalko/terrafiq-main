@@ -5,27 +5,24 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 
-print("⏳ Lade die reale, topographische Sprit-Datenmatrix aus München...")
-# KORREKTUR: Wir nutzen jetzt die Datei mit den topographischen Features!
+print("⏳ Lade die 10.000 topographischen Datensätze aus München West...")
 df = pd.read_csv('telemetry_matrix_with_topography.csv')
 
 # ==============================================================================
-# 1. Features (X) explizit definieren und in feste Reihenfolge bringen
+# 1. Features (X) und Target (y) definieren
 # ==============================================================================
-# Wir definieren die Features nun EXAKT so, wie sie aus der Silver-Zone kommen!
 FEATURES = [
     'latitude', 
     'longitude', 
-    'fuel_level_liters', 
     'distance_chunk_km', 
+    'payload_kg',
+    'hour_of_day',
     'elevation_meters', 
     'slope_percentage'
 ]
 
 X = df[FEATURES]
-# Das Target bleibt der Spritverbrauch (wird in deiner CSV simuliert/berechnet)
-# Hinweis: Falls deine CSV-Spalte für den Verbrauch anders heißt, passen wir das an.
-y = df['fuel_level_liters'].shift(-1).fillna(df['fuel_level_liters']) # Beispiel für Verbrauchskorrelation
+y = df['Sprit_Verbrauch_Ist_Liter']
 
 # ==============================================================================
 # 2. Train-Test-Split (80% Training, 20% Validierung)
@@ -33,15 +30,15 @@ y = df['fuel_level_liters'].shift(-1).fillna(df['fuel_level_liters']) # Beispiel
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # ==============================================================================
-# 3. Modell-Training
+# 3. Modell-Training & Hyperparameter-Check
 # ==============================================================================
-print("\n🤖 Initialisiere Scikit-Learn Linear Regression Modell...")
+print("\n🤖 Trainiere das erweiterte TCO-Predictor Modell...")
 model = LinearRegression()
 model.fit(X_train, y_train)
-print("✅ Modell erfolgreich auf topographischen Spritverbrauch trainiert!")
+print("✅ Modell erfolgreich auf 10.000 Real-Szenarien trainiert!")
 
 # ==============================================================================
-# 4. Validierung auf den ungesehenen Testdaten
+# 4. Validierung (Beseitigung der alten 'nan'-Warnung)
 # ==============================================================================
 y_pred = model.predict(X_test)
 
@@ -49,11 +46,17 @@ r2 = r2_score(y_test, y_pred)
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
 print(f"\n📊 --- VALIDIERUNGS-KENNZAHLEN ---")
-print(f"-> Bestimmtheitsmass R² (auf Testdaten): {r2:.4f}")
+print(f"-> Bestimmtheitsmass R² (Genauigkeit): {r2*100:.2f}%")
 print(f"-> Mittlerer Fehler (RMSE): {rmse:.4f} Liter")
 
+# Gewichte für unsere Lambda-Funktion anzeigen lassen
+print(f"\n⚙️ --- MODELL-GEWICHTE FÜR DEINEN BRAIN-SERVICE ---")
+print(f"Intercept (Basiswert): {model.intercept_:.4f}")
+for feature, coef in zip(FEATURES, model.coef_):
+    print(f"-> {feature}: {coef:.6f}")
+
 # ==============================================================================
-# 5. Modell-Export für die Cloud-Infrastruktur (terrafiq-brain-service)
+# 5. Modell-Export
 # ==============================================================================
 model_filename = 'tco_fuel_predictor.joblib'
 joblib.dump(model, model_filename)
